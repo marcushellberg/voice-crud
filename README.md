@@ -21,7 +21,6 @@ A modern issue tracking application with voice control capabilities. Built with 
 - **Backend**:
   - Spring Boot
   - Java
-  - RESTful APIs
 
 ## Prerequisites
 
