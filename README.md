@@ -1,51 +1,91 @@
-# Custom project from Hilla
+# Voice-Controlled Issue Tracker
 
-This project can be used as a starting point to create your own Hilla application with Spring Boot.
-It contains all the necessary configuration and some placeholder files to get you started.
+A modern issue tracking application with voice control capabilities. Built with Hilla (Vaadin), Spring Boot, and OpenAI's real-time voice API.
+
+## Features
+
+- Voice-controlled interface for hands-free operation
+- Real-time issue management
+- Filter issues by assignee
+- Create, delete, and select issues using voice commands
+- Responsive web interface
+
+## Technologies
+
+- **Frontend**:
+  - React + TypeScript
+  - Hilla framework
+  - WebRTC for real-time voice communication
+  - OpenAI's real-time API for voice processing
+  
+- **Backend**:
+  - Spring Boot
+  - Java
+  - RESTful APIs
+
+## Prerequisites
+
+- Java 17 or newer
+- Node.js 18 or newer
+- OpenAI API key with access to real-time voice models
+
+## Setup
+
+1. Clone the repository
+2. Set your OpenAI API key as an environment variable:
+   ```bash
+   export OPENAI_API_KEY=your_api_key_here
+   ```
 
 ## Running the application
 
-The project is a standard Maven project. To run it from the command line,
-type `mvnw` (Windows), or `./mvnw` (Mac & Linux), then open
-http://localhost:8080 in your browser.
+The project is a standard Maven project. To run it from the command line:
 
-You can also import the project to your IDE of choice as you would with any
-Maven project.
+- Windows: `mvnw`
+- Mac & Linux: `./mvnw`
 
-## Deploying to Production
+Then open http://localhost:8080 in your browser.
 
-To create a production build, call `mvnw clean package -Pproduction` (Windows),
-or `./mvnw clean package -Pproduction` (Mac & Linux).
-This will build a JAR file with all the dependencies and front-end resources,
-ready to be deployed. The file can be found in the `target` folder after the build completes.
+You can also import the project to your IDE of choice as you would with any Maven project.
 
-Once the JAR file is built, you can run it using
-`java -jar target/myapp-1.0-SNAPSHOT.jar` (NOTE, replace
-`myapp-1.0-SNAPSHOT.jar` with the name of your jar).
+## Voice Control Usage
+
+1. Click the "Enable Voice Control" button in the application
+2. Once activated, you can use voice commands such as:
+   - "Filter issues assigned to [name]"
+   - "Show all issues"
+   - "Create a new issue"
+   - "Delete current issue"
+   - "Select issue number [id]"
 
 ## Project structure
 
 <table style="width:100%; text-align: left;">
   <tr><th>Directory</th><th>Description</th></tr>
   <tr><td><code>src/main/frontend/</code></td><td>Client-side source directory</td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>index.html</code></td><td>HTML template</td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>index.ts</code></td><td>Frontend 
-entrypoint, bootstraps a React application</td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>routes.tsx</code></td><td>React Router routes definition</td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>MainLayout.tsx</code></td><td>Main 
-layout component, contains the navigation menu, uses <a href="https://hilla.dev/docs/react/components/app-layout">
-App Layout</a></td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>views/</code></td><td>UI view 
-components</td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>themes/</code></td><td>Custom  
-CSS styles</td></tr>
-  <tr><td><code>src/main/java/&lt;groupId&gt;/</code></td><td>Server-side 
-source directory, contains the server-side Java views</td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>Application.java</code></td><td>Server entry-point</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>components/</code></td><td>React components including voice control</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>views/</code></td><td>UI view components</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>themes/</code></td><td>Custom CSS styles</td></tr>
+  <tr><td><code>src/main/java/</code></td><td>Server-side source directory</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>application/</code></td><td>Java services and models</td></tr>
 </table>
+
+## Building for Production
+
+To create a production build:
+
+- Windows: `mvnw clean package -Pproduction`
+- Mac & Linux: `./mvnw clean package -Pproduction`
+
+This will build a JAR file with all the dependencies and front-end resources, ready to be deployed. The file can be found in the `target` folder after the build completes.
+
+To run the production build:
+```bash
+java -jar target/voice-crud-1.0-SNAPSHOT.jar
+```
 
 ## Useful links
 
-- Read the documentation at [hilla.dev/docs](https://hilla.dev/docs/).
-- Ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/vaadin) or join our [Forum](https://vaadin.com/forum).
-- Report issues, create pull requests in [GitHub](https://github.com/vaadin/hilla).
+- [Hilla Documentation](https://vaadin.com/docs/)
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [OpenAI API Documentation](https://platform.openai.com/docs/api-reference)
