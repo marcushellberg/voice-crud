@@ -71,6 +71,18 @@ export default function IssuesView() {
     }
   };
 
+  const handleUpdateIssue = async (id: number, updates: Partial<Issue>) => {
+    const issue = issues.value.find(i => i.id === id);
+    if (issue) {
+      const updatedIssue = {
+        ...issue,
+        ...updates
+      };
+      read(updatedIssue);
+      await submit();
+    }
+  };
+
   return (
     <div className="p-m flex flex-col gap-m">
       <div className="flex gap-m items-center justify-between">
@@ -84,6 +96,7 @@ export default function IssuesView() {
           onCreateIssue={handleCreate}
           onDeleteIssue={handleDelete}
           onSelectIssue={handleSelectIssue}
+          onUpdateIssue={handleUpdateIssue}
           selectedIssue={selectedIssue.value}
           issues={issues.value}
         />

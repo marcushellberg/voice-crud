@@ -9,6 +9,7 @@ interface VoiceControlProps {
   onCreateIssue: () => void;
   onDeleteIssue: () => void;
   onSelectIssue: (id: number) => void;
+  onUpdateIssue: (id: number, updates: Partial<Issue>) => void;
   selectedIssue: Issue | null;
   issues: Issue[];
 }
@@ -19,6 +20,7 @@ export function VoiceControl({
   onCreateIssue,
   onDeleteIssue,
   onSelectIssue,
+  onUpdateIssue,
   selectedIssue,
   issues,
 }: VoiceControlProps) {
@@ -143,6 +145,25 @@ export function VoiceControl({
               required: ['id'],
             },
           },
+          {
+            type: 'function',
+            name: 'updateIssue',
+            description: 'Update the currently selected issue with new values',
+            parameters: {
+              type: 'object',
+              properties: {
+                title: { type: 'string', description: 'New title for the issue' },
+                description: { type: 'string', description: 'New description for the issue' },
+                status: { 
+                  type: 'string', 
+                  description: 'New status for the issue',
+                  enum: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
+                },
+                assignee: { type: 'string', description: 'New assignee for the issue' }
+              },
+              minProperties: 1,
+            },
+          },
         ],
       },
     };
@@ -175,6 +196,16 @@ export function VoiceControl({
             onSelectIssue(args.id);
           }
           break;
+        case 'updateIssue':
+          if (selectedIssue) {
+            const updates: Partial<Issue> = {};
+            if (args.title) updates.title = args.title;
+            if (args.description) updates.description = args.description;
+            if (args.status) updates.status = args.status;
+            if (args.assignee) updates.assignee = args.assignee;
+            onUpdateIssue(selectedIssue.id, updates);
+          }
+          break;
       }
 
       // Send function call output
@@ -190,7 +221,7 @@ export function VoiceControl({
         dataChannel.current.send(JSON.stringify(event));
       }
     }
-  }, [selectedIssue, issues, onFilterByAssignee, onShowAll, onCreateIssue, onDeleteIssue, onSelectIssue]);
+  }, [selectedIssue, issues, onFilterByAssignee, onShowAll, onCreateIssue, onDeleteIssue, onSelectIssue, onUpdateIssue]);
 
   return (
     <div className="flex items-center gap-m">
