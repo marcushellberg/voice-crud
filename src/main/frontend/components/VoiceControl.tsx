@@ -8,7 +8,9 @@ interface VoiceControlProps {
   onShowAll: () => void;
   onCreateIssue: () => void;
   onDeleteIssue: () => void;
+  onSelectIssue: (id: number) => void;
   selectedIssue: Issue | null;
+  issues: Issue[];
 }
 
 export function VoiceControl({
@@ -16,7 +18,9 @@ export function VoiceControl({
   onShowAll,
   onCreateIssue,
   onDeleteIssue,
+  onSelectIssue,
   selectedIssue,
+  issues,
 }: VoiceControlProps) {
   const [isListening, setIsListening] = useState(false);
   const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -127,6 +131,18 @@ export function VoiceControl({
             name: 'deleteCurrentIssue',
             description: 'Delete the currently selected issue',
           },
+          {
+            type: 'function',
+            name: 'selectIssue',
+            description: 'Select an issue by its ID number',
+            parameters: {
+              type: 'object',
+              properties: {
+                id: { type: 'number', description: 'The ID of the issue to select' },
+              },
+              required: ['id'],
+            },
+          },
         ],
       },
     };
@@ -151,6 +167,12 @@ export function VoiceControl({
         case 'deleteCurrentIssue':
           if (selectedIssue) {
             onDeleteIssue();
+          }
+          break;
+        case 'selectIssue':
+          const issueExists = issues.some(issue => issue.id === args.id);
+          if (issueExists) {
+            onSelectIssue(args.id);
           }
           break;
       }

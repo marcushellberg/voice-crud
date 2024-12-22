@@ -63,6 +63,14 @@ export default function IssuesView() {
     issues.value = filteredIssues;
   };
 
+  const handleSelectIssue = (id: number) => {
+    const issue = issues.value.find(i => i.id === id);
+    if (issue) {
+      selectedIssue.value = issue;
+      read(issue);
+    }
+  };
+
   return (
     <div className="p-m flex flex-col gap-m">
       <div className="flex gap-m items-center justify-between">
@@ -75,7 +83,9 @@ export default function IssuesView() {
           onShowAll={loadAllIssues}
           onCreateIssue={handleCreate}
           onDeleteIssue={handleDelete}
+          onSelectIssue={handleSelectIssue}
           selectedIssue={selectedIssue.value}
+          issues={issues.value}
         />
       </div>
 
