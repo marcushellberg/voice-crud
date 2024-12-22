@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { RealtimeService } from 'Frontend/generated/endpoints';
 import Issue from 'Frontend/generated/com/example/application/Issue';
 import { Button } from '@vaadin/react-components/Button.js';
@@ -150,7 +150,7 @@ export function VoiceControl({
     dataChannel.current.send(JSON.stringify(event));
   }
 
-  async function handleMessage(msg: any) {
+  const handleMessage = useCallback(async (msg: any) => {
     if (msg.type === 'response.function_call_arguments.done') {
       const args = JSON.parse(msg.arguments || '{}');
       
@@ -190,7 +190,7 @@ export function VoiceControl({
         dataChannel.current.send(JSON.stringify(event));
       }
     }
-  }
+  }, [selectedIssue, issues, onFilterByAssignee, onShowAll, onCreateIssue, onDeleteIssue, onSelectIssue]);
 
   return (
     <div className="flex items-center gap-m">
