@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Application",
+      "request": "launch",
+      "mainClass": "Application",
+      "projectName": "voice-crud"
+    },
+    {
+      "type": "java",
       "name": "Launch Application",
       "request": "launch",
       "mainClass": "com.example.application.Application"
