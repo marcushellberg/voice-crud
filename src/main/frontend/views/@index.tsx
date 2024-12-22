@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import Issue from 'Frontend/generated/com/example/application/Issue';
 import IssueModel from 'Frontend/generated/com/example/application/IssueModel';
 import IssueStatus from 'Frontend/generated/com/example/application/IssueStatus';
+import { VoiceControl } from '../components/VoiceControl';
 
 export default function IssuesView() {
   const issues = useSignal<Issue[]>([]);
@@ -28,10 +29,13 @@ export default function IssuesView() {
   });
 
   useEffect(() => {
-    IssuesService.findAll().then((fetchedIssues) => {
-      issues.value = fetchedIssues;
-    });
+    loadAllIssues();
   }, []);
+
+  const loadAllIssues = async () => {
+    const fetchedIssues = await IssuesService.findAll();
+    issues.value = fetchedIssues;
+  };
 
   const handleCreate = () => {
     const newIssue = {
@@ -54,11 +58,25 @@ export default function IssuesView() {
     }
   };
 
+  const handleFilterByAssignee = async (assignee: string) => {
+    const filteredIssues = await IssuesService.findByAssignee(assignee);
+    issues.value = filteredIssues;
+  };
+
   return (
     <div className="p-m flex flex-col gap-m">
-      <div className="flex gap-m items-center">
-        <h2 className="m-0">Issues</h2>
-        <Button theme="primary" onClick={handleCreate}>Create New</Button>
+      <div className="flex gap-m items-center justify-between">
+        <div className="flex gap-m items-center">
+          <h2 className="m-0">Issues</h2>
+          <Button theme="primary" onClick={handleCreate}>Create New</Button>
+        </div>
+        <VoiceControl
+          onFilterByAssignee={handleFilterByAssignee}
+          onShowAll={loadAllIssues}
+          onCreateIssue={handleCreate}
+          onDeleteIssue={handleDelete}
+          selectedIssue={selectedIssue.value}
+        />
       </div>
 
       <Grid 
@@ -86,8 +104,8 @@ export default function IssuesView() {
           <TextArea
             label="Description"
             {...field(model.description)}
-            />
-            <Select
+          />
+          <Select
             label="Status"
             items={Object.values(IssueStatus).map(status => ({ value: status, label: status.replace('_', ' ').toLowerCase().replace(/\b\w/g, char => char.toUpperCase()) }))}
             {...field(model.status)}
@@ -96,7 +114,7 @@ export default function IssuesView() {
             label="Assignee"
             {...field(model.assignee)}
           />
-          <div className="flex gap-m">
+          <div className="flex gap-m py-m">
             <Button theme="primary" onClick={submit}>
               {selectedIssue.value.id === 0 ? 'Create' : 'Update'}
             </Button>
