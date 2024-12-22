@@ -34,6 +34,64 @@ export function VoiceControl({
     };
   }, []);
 
+  const handleMessage = useCallback(async (msg: any) => {
+    if (msg.type === 'response.function_call_arguments.done') {
+      const args = JSON.parse(msg.arguments || '{}');
+      
+      switch (msg.name) {
+        case 'filterByAssignee':
+          onFilterByAssignee(args.assignee);
+          break;
+        case 'showAllIssues':
+          onShowAll();
+          break;
+        case 'createNewIssue':
+          onCreateIssue();
+          break;
+        case 'deleteCurrentIssue':
+          if (selectedIssue) {
+            onDeleteIssue();
+          }
+          break;
+        case 'selectIssue':
+          const issueExists = issues.some(issue => issue.id === args.id);
+          if (issueExists) {
+            onSelectIssue(args.id);
+          }
+          break;
+        case 'updateIssue':
+          if (selectedIssue) {
+            const updates: Partial<Issue> = {};
+            if (args.title) updates.title = args.title;
+            if (args.description) updates.description = args.description;
+            if (args.status) updates.status = args.status;
+            if (args.assignee) updates.assignee = args.assignee;
+            onUpdateIssue(selectedIssue.id, updates);
+          }
+          break;
+      }
+
+      // Send function call output
+      if (dataChannel.current) {
+        const event = {
+          type: 'conversation.item.create',
+          item: {
+            type: 'function_call_output',
+            call_id: msg.call_id,
+            output: JSON.stringify({ success: true }),
+          },
+        };
+        dataChannel.current.send(JSON.stringify(event));
+      }
+    }
+  }, [selectedIssue, issues, onFilterByAssignee, onShowAll, onCreateIssue, onDeleteIssue, onSelectIssue, onUpdateIssue]);
+
+  // Keep track of the latest message handler
+  const latestHandleMessage = useRef(handleMessage);
+  useEffect(() => {
+    latestHandleMessage.current = handleMessage;
+  }, [handleMessage]);
+
   async function initializeWebRTC() {
     try {
       // Get ephemeral token
@@ -62,12 +120,16 @@ export function VoiceControl({
 
       dc.addEventListener('open', () => {
         console.log('Data channel opened');
+        
+        // Set up message handler when data channel opens
+        const messageHandler = (ev: MessageEvent) => {
+          const msg = JSON.parse(ev.data);
+          // Always use the latest message handler from the ref
+          latestHandleMessage.current(msg);
+        };
+        dc.addEventListener('message', messageHandler);
+        
         configureTools();
-      });
-
-      dc.addEventListener('message', async (ev) => {
-        const msg = JSON.parse(ev.data);
-        handleMessage(msg);
       });
 
       // Create and send offer
@@ -170,58 +232,6 @@ export function VoiceControl({
 
     dataChannel.current.send(JSON.stringify(event));
   }
-
-  const handleMessage = useCallback(async (msg: any) => {
-    if (msg.type === 'response.function_call_arguments.done') {
-      const args = JSON.parse(msg.arguments || '{}');
-      
-      switch (msg.name) {
-        case 'filterByAssignee':
-          onFilterByAssignee(args.assignee);
-          break;
-        case 'showAllIssues':
-          onShowAll();
-          break;
-        case 'createNewIssue':
-          onCreateIssue();
-          break;
-        case 'deleteCurrentIssue':
-          if (selectedIssue) {
-            onDeleteIssue();
-          }
-          break;
-        case 'selectIssue':
-          const issueExists = issues.some(issue => issue.id === args.id);
-          if (issueExists) {
-            onSelectIssue(args.id);
-          }
-          break;
-        case 'updateIssue':
-          if (selectedIssue) {
-            const updates: Partial<Issue> = {};
-            if (args.title) updates.title = args.title;
-            if (args.description) updates.description = args.description;
-            if (args.status) updates.status = args.status;
-            if (args.assignee) updates.assignee = args.assignee;
-            onUpdateIssue(selectedIssue.id, updates);
-          }
-          break;
-      }
-
-      // Send function call output
-      if (dataChannel.current) {
-        const event = {
-          type: 'conversation.item.create',
-          item: {
-            type: 'function_call_output',
-            call_id: msg.call_id,
-            output: JSON.stringify({ success: true }),
-          },
-        };
-        dataChannel.current.send(JSON.stringify(event));
-      }
-    }
-  }, [selectedIssue, issues, onFilterByAssignee, onShowAll, onCreateIssue, onDeleteIssue, onSelectIssue, onUpdateIssue]);
 
   return (
     <div className="flex items-center gap-m">

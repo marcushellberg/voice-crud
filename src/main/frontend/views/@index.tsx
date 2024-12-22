@@ -24,7 +24,6 @@ export default function IssuesView() {
       issues.value = issues.value.map(i => 
         i.id === updatedIssue.id ? updatedIssue : i
       );
-      selectedIssue.value = null;
     }
   });
 
