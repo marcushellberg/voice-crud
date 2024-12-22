@@ -8,6 +8,7 @@ A modern issue tracking application with voice control capabilities. Built with 
 - Real-time issue management
 - Filter issues by assignee
 - Create, delete, and select issues using voice commands
+- Update issue properties (title, description, status, assignee) with voice
 - Responsive web interface
 
 ## Technologies
@@ -56,6 +57,10 @@ You can also import the project to your IDE of choice as you would with any Mave
    - "Create a new issue"
    - "Delete current issue"
    - "Select issue number [id]"
+   - "Update the current issue's title to [title]"
+   - "Change the status to in progress"
+   - "Assign this issue to [name]"
+   - "Update the description to [description]"
 
 ## Project structure
 
