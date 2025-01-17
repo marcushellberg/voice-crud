@@ -74,6 +74,61 @@ You can also import the project to your IDE of choice as you would with any Mave
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>application/</code></td><td>Java services and models</td></tr>
 </table>
 
+## VoiceControl Component
+
+The `VoiceControl` component is a React component that enables real-time voice control in the application using WebRTC and OpenAI's real-time voice API. It handles the audio streaming, WebRTC connection management, and function execution based on voice commands.
+
+### Usage Example
+
+```tsx
+import { VoiceControl } from './components/VoiceControl';
+
+// Define functions that can be called via voice commands
+const functions = [
+  {
+    name: 'filterIssues',
+    description: 'Filter issues by assignee',
+    parameters: {
+      type: 'object',
+      properties: {
+        assignee: {
+          type: 'string',
+          description: 'Name of the person to filter by'
+        }
+      }
+    },
+    execute: async (args) => {
+      // Implementation of the filter function
+    }
+  }
+];
+
+function App() {
+  return (
+    <div>
+      <VoiceControl functions={functions} />
+      {/* Rest of your application */}
+    </div>
+  );
+}
+```
+
+### Key Features
+
+- Real-time voice processing using WebRTC
+- Automatic audio streaming setup and management
+- Bidirectional communication channel for voice commands and responses
+- Function registration system for voice-controlled actions
+- Built-in UI for enabling/disabling voice control
+
+### Props
+
+- `functions`: An array of function definitions that can be triggered by voice commands. Each function should have:
+  - `name`: Function identifier
+  - `description`: Description of what the function does (used by the AI)
+  - `parameters`: JSON Schema of the function parameters
+  - `execute`: The actual function implementation
+
 ## Building for Production
 
 To create a production build:
