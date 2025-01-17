@@ -1,28 +1,25 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { RealtimeService } from 'Frontend/generated/endpoints';
-import Issue from 'Frontend/generated/com/example/application/Issue';
 import { Button } from '@vaadin/react-components/Button.js';
 
+export interface VoiceFunction {
+  name: string;
+  description: string;
+  parameters?: {
+    type: 'object';
+    properties: Record<string, any>;
+    required?: string[];
+    minProperties?: number;
+  };
+  execute: (args: any) => Promise<void> | void;
+}
+
 interface VoiceControlProps {
-  onFilterByAssignee: (assignee: string) => void;
-  onShowAll: () => void;
-  onCreateIssue: () => void;
-  onDeleteIssue: () => void;
-  onSelectIssue: (id: number) => void;
-  onUpdateIssue: (id: number, updates: Partial<Issue>) => void;
-  selectedIssue: Issue | null;
-  issues: Issue[];
+  functions: VoiceFunction[];
 }
 
 export function VoiceControl({
-  onFilterByAssignee,
-  onShowAll,
-  onCreateIssue,
-  onDeleteIssue,
-  onSelectIssue,
-  onUpdateIssue,
-  selectedIssue,
-  issues,
+  functions,
 }: VoiceControlProps) {
   const [isListening, setIsListening] = useState(false);
   const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -37,38 +34,10 @@ export function VoiceControl({
   const handleMessage = useCallback(async (msg: any) => {
     if (msg.type === 'response.function_call_arguments.done') {
       const args = JSON.parse(msg.arguments || '{}');
+      const fn = functions.find(f => f.name === msg.name);
       
-      switch (msg.name) {
-        case 'filterByAssignee':
-          onFilterByAssignee(args.assignee);
-          break;
-        case 'showAllIssues':
-          onShowAll();
-          break;
-        case 'createNewIssue':
-          onCreateIssue();
-          break;
-        case 'deleteCurrentIssue':
-          if (selectedIssue) {
-            onDeleteIssue();
-          }
-          break;
-        case 'selectIssue':
-          const issueExists = issues.some(issue => issue.id === args.id);
-          if (issueExists) {
-            onSelectIssue(args.id);
-          }
-          break;
-        case 'updateIssue':
-          if (selectedIssue) {
-            const updates: Partial<Issue> = {};
-            if (args.title) updates.title = args.title;
-            if (args.description) updates.description = args.description;
-            if (args.status) updates.status = args.status;
-            if (args.assignee) updates.assignee = args.assignee;
-            onUpdateIssue(selectedIssue.id, updates);
-          }
-          break;
+      if (fn) {
+        await fn.execute(args);
       }
 
       // Send function call output
@@ -84,7 +53,7 @@ export function VoiceControl({
         dataChannel.current.send(JSON.stringify(event));
       }
     }
-  }, [selectedIssue, issues, onFilterByAssignee, onShowAll, onCreateIssue, onDeleteIssue, onSelectIssue, onUpdateIssue]);
+  }, [functions]);
 
   // Keep track of the latest message handler
   const latestHandleMessage = useRef(handleMessage);
@@ -167,66 +136,12 @@ export function VoiceControl({
       type: 'session.update',
       session: {
         modalities: ['text', 'audio'],
-        tools: [
-          {
-            type: 'function',
-            name: 'filterByAssignee',
-            description: 'Filter issues by assignee name',
-            parameters: {
-              type: 'object',
-              properties: {
-                assignee: { type: 'string', description: 'Name of the assignee to filter by' },
-              },
-              required: ['assignee'],
-            },
-          },
-          {
-            type: 'function',
-            name: 'showAllIssues',
-            description: 'Show all issues without filtering',
-          },
-          {
-            type: 'function',
-            name: 'createNewIssue',
-            description: 'Create a new issue',
-          },
-          {
-            type: 'function',
-            name: 'deleteCurrentIssue',
-            description: 'Delete the currently selected issue',
-          },
-          {
-            type: 'function',
-            name: 'selectIssue',
-            description: 'Select an issue by its ID number',
-            parameters: {
-              type: 'object',
-              properties: {
-                id: { type: 'number', description: 'The ID of the issue to select' },
-              },
-              required: ['id'],
-            },
-          },
-          {
-            type: 'function',
-            name: 'updateIssue',
-            description: 'Update the currently selected issue with new values',
-            parameters: {
-              type: 'object',
-              properties: {
-                title: { type: 'string', description: 'New title for the issue' },
-                description: { type: 'string', description: 'New description for the issue' },
-                status: { 
-                  type: 'string', 
-                  description: 'New status for the issue',
-                  enum: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
-                },
-                assignee: { type: 'string', description: 'New assignee for the issue' }
-              },
-              minProperties: 1,
-            },
-          },
-        ],
+        tools: functions.map(({ name, description, parameters }) => ({
+          type: 'function',
+          name,
+          description,
+          parameters,
+        })),
       },
     };
 

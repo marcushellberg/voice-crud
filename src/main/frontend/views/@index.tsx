@@ -8,11 +8,11 @@ import { TextArea } from '@vaadin/react-components/TextArea.js';
 import { Select } from '@vaadin/react-components/Select.js';
 import { useForm } from '@vaadin/hilla-react-form';
 import { IssuesService } from 'Frontend/generated/endpoints';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Issue from 'Frontend/generated/com/example/application/Issue';
 import IssueModel from 'Frontend/generated/com/example/application/IssueModel';
 import IssueStatus from 'Frontend/generated/com/example/application/IssueStatus';
-import { VoiceControl } from '../components/VoiceControl';
+import { VoiceControl, VoiceFunction } from '../components/VoiceControl';
 
 export default function IssuesView() {
   const issues = useSignal<Issue[]>([]);
@@ -28,77 +28,129 @@ export default function IssuesView() {
   });
 
   useEffect(() => {
-    loadAllIssues();
+    IssuesService.findAll().then(fetchedIssues => {
+      issues.value = fetchedIssues;
+    });
   }, []);
 
-  const loadAllIssues = async () => {
-    const fetchedIssues = await IssuesService.findAll();
-    issues.value = fetchedIssues;
-  };
-
-  const handleCreate = () => {
-    const newIssue = {
-      id: 0,
-      title: '',
-      description: '',
-      status: 'OPEN',
-      assignee: ''
-    } as Issue;
-    selectedIssue.value = newIssue;
-    read(newIssue);
-  };
-
-  const handleDelete = async () => {
-    if (selectedIssue.value) {
-      await IssuesService.delete(selectedIssue.value.id);
-      issues.value = issues.value.filter(i => i.id !== selectedIssue.value?.id);
-      selectedIssue.value = null;
-      clear();
-    }
-  };
-
-  const handleFilterByAssignee = async (assignee: string) => {
-    const filteredIssues = await IssuesService.findByAssignee(assignee);
-    issues.value = filteredIssues;
-  };
-
-  const handleSelectIssue = (id: number) => {
-    const issue = issues.value.find(i => i.id === id);
-    if (issue) {
-      selectedIssue.value = issue;
-      read(issue);
-    }
-  };
-
-  const handleUpdateIssue = async (id: number, updates: Partial<Issue>) => {
-    const issue = issues.value.find(i => i.id === id);
-    if (issue) {
-      const updatedIssue = {
-        ...issue,
-        ...updates
-      };
-      read(updatedIssue);
-      await submit();
-    }
-  };
+  const functions: VoiceFunction[] = useMemo(() => [
+    {
+      name: 'filterByAssignee',
+      description: 'Filter issues by assignee name',
+      parameters: {
+        type: 'object',
+        properties: {
+          assignee: { type: 'string', description: 'Name of the assignee to filter by' },
+        },
+        required: ['assignee'],
+      },
+      execute: async ({ assignee }) => {
+        const filteredIssues = await IssuesService.findByAssignee(assignee);
+        issues.value = filteredIssues;
+      }
+    },
+    {
+      name: 'showAllIssues',
+      description: 'Show all issues without filtering',
+      execute: async () => {
+        const fetchedIssues = await IssuesService.findAll();
+        issues.value = fetchedIssues;
+      }
+    },
+    {
+      name: 'createNewIssue',
+      description: 'Create a new issue',
+      execute: () => {
+        const newIssue = {
+          id: 0,
+          title: '',
+          description: '',
+          status: 'OPEN',
+          assignee: ''
+        } as Issue;
+        selectedIssue.value = newIssue;
+        read(newIssue);
+      }
+    },
+    {
+      name: 'deleteCurrentIssue',
+      description: 'Delete the currently selected issue',
+      execute: async () => {
+        if (selectedIssue.value) {
+          await IssuesService.delete(selectedIssue.value.id);
+          issues.value = issues.value.filter(i => i.id !== selectedIssue.value?.id);
+          selectedIssue.value = null;
+          clear();
+        }
+      }
+    },
+    {
+      name: 'selectIssue',
+      description: 'Select an issue by its ID number',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'The ID of the issue to select' },
+        },
+        required: ['id'],
+      },
+      execute: ({ id }) => {
+        const issue = issues.value.find(i => i.id === id);
+        if (issue) {
+          selectedIssue.value = issue;
+          read(issue);
+        }
+      }
+    },
+    {
+      name: 'updateIssue',
+      description: 'Update the currently selected issue with new values',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'New title for the issue' },
+          description: { type: 'string', description: 'New description for the issue' },
+          status: { 
+            type: 'string', 
+            description: 'New status for the issue',
+            enum: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
+          },
+          assignee: { type: 'string', description: 'New assignee for the issue' }
+        },
+        minProperties: 1,
+      },
+      execute: async (args) => {
+        if (selectedIssue.value) {
+          const updates: Partial<Issue> = {};
+          if (args.title) updates.title = args.title;
+          if (args.description) updates.description = args.description;
+          if (args.status) updates.status = args.status;
+          if (args.assignee) updates.assignee = args.assignee;
+          
+          const updatedIssue = {
+            ...selectedIssue.value,
+            ...updates
+          };
+          read(updatedIssue);
+          await submit();
+        }
+      }
+    },
+  ], [selectedIssue.value, issues.value, read, clear, submit]);
 
   return (
     <div className="p-m flex flex-col gap-m">
       <div className="flex gap-m items-center justify-between">
         <div className="flex gap-m items-center">
           <h2 className="m-0">Issues</h2>
-          <Button theme="primary" onClick={handleCreate}>Create New</Button>
+          <Button 
+            theme="primary" 
+            onClick={() => functions.find(f => f.name === 'createNewIssue')?.execute({})}
+          >
+            Create New
+          </Button>
         </div>
-        <VoiceControl
-          onFilterByAssignee={handleFilterByAssignee}
-          onShowAll={loadAllIssues}
-          onCreateIssue={handleCreate}
-          onDeleteIssue={handleDelete}
-          onSelectIssue={handleSelectIssue}
-          onUpdateIssue={handleUpdateIssue}
-          selectedIssue={selectedIssue.value}
-          issues={issues.value}
-        />
+        <VoiceControl functions={functions} />
       </div>
 
       <Grid 
@@ -141,7 +193,12 @@ export default function IssuesView() {
               {selectedIssue.value.id === 0 ? 'Create' : 'Update'}
             </Button>
             {selectedIssue.value.id !== 0 && (
-              <Button theme="error" onClick={handleDelete}>Delete</Button>
+              <Button 
+                theme="error" 
+                onClick={() => functions.find(f => f.name === 'deleteCurrentIssue')?.execute({})}
+              >
+                Delete
+              </Button>
             )}
             <Button theme="tertiary" onClick={() => {
               selectedIssue.value = null;
