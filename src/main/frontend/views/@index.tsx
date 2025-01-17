@@ -1,18 +1,18 @@
-import { useSignal } from '@vaadin/hilla-react-signals';
-import { Grid } from '@vaadin/react-components/Grid.js';
-import { GridColumn } from '@vaadin/react-components/GridColumn.js';
-import { Button } from '@vaadin/react-components/Button.js';
-import { FormLayout } from '@vaadin/react-components/FormLayout.js';
-import { TextField } from '@vaadin/react-components/TextField.js';
-import { TextArea } from '@vaadin/react-components/TextArea.js';
-import { Select } from '@vaadin/react-components/Select.js';
-import { useForm } from '@vaadin/hilla-react-form';
-import { IssuesService } from 'Frontend/generated/endpoints';
-import { useEffect, useMemo } from 'react';
+import {useSignal} from '@vaadin/hilla-react-signals';
+import {Grid} from '@vaadin/react-components/Grid.js';
+import {GridColumn} from '@vaadin/react-components/GridColumn.js';
+import {Button} from '@vaadin/react-components/Button.js';
+import {FormLayout} from '@vaadin/react-components/FormLayout.js';
+import {TextField} from '@vaadin/react-components/TextField.js';
+import {TextArea} from '@vaadin/react-components/TextArea.js';
+import {Select} from '@vaadin/react-components/Select.js';
+import {useForm} from '@vaadin/hilla-react-form';
+import {IssuesService} from 'Frontend/generated/endpoints';
+import {useEffect, useMemo} from 'react';
 import Issue from 'Frontend/generated/com/example/application/Issue';
 import IssueModel from 'Frontend/generated/com/example/application/IssueModel';
 import IssueStatus from 'Frontend/generated/com/example/application/IssueStatus';
-import { VoiceControl, VoiceFunction } from '../components/VoiceControl';
+import {VoiceControl, VoiceFunction} from '../components/VoiceControl';
 
 export default function IssuesView() {
   const issues = useSignal<Issue[]>([]);
@@ -45,16 +45,14 @@ export default function IssuesView() {
         required: ['assignee'],
       },
       execute: async ({ assignee }) => {
-        const filteredIssues = await IssuesService.findByAssignee(assignee);
-        issues.value = filteredIssues;
+        issues.value = await IssuesService.findByAssignee(assignee);
       }
     },
     {
       name: 'showAllIssues',
       description: 'Show all issues without filtering',
       execute: async () => {
-        const fetchedIssues = await IssuesService.findAll();
-        issues.value = fetchedIssues;
+        issues.value = await IssuesService.findAll();
       }
     },
     {
